@@ -1,5 +1,4 @@
 let maze = []
-let vis = []
 let player = [0,0] // x y
 
 function generateMaze()
@@ -14,9 +13,6 @@ function generateMaze()
     }
     maze[0][0] = 2
     maze[4][4] = 3
-    vis = maze.slice()
-    vis[0][0] = 0
-    vis[4][4] = 0
 }
 
 function renderMaze()
@@ -57,7 +53,7 @@ function movePlayer(x, y)
 	player[0] -= x
 	player[1] -= y
     }
-    
+
     playerDiv = document.getElementById(`square-${player[0]}-${player[1]}`)
     playerDiv.classList.add("player")
 
@@ -72,41 +68,76 @@ function verifyWin()
     }
 }
 
-let path = false
-function dfs(x, y)
-{
-    if (!(x < 0 || y < 0 || x > 4 || y > 4) && !(vis[x][y] == 1))
+function bfs(start, end) {
+    const ROW = 5;
+    const COL = 5;
+
+    const visited = Array(ROW)
+	.fill(false)
+	.map(() => Array(COL).fill(false));
+    const queue = [];
+
+    visited[start[0]][start[1]] = true;
+
+    for (let i = 0; i < ROW; i+=1)
     {
-        if (maze[x][y] == 3)
+	for (let j = 0; j < COL; j+=1)
 	{
-	    alert("q")
-	    path = true
+	    if (maze[i][j] == 1)
+	    {
+		visited[i][j] = true;
+	    }
+	}
+    }
+
+    queue.push(start);
+
+    const dx = [0, 0, 1, -1];
+    const dy = [1, -1, 0, 0];
+
+    while (queue.length > 0) {
+	const [x, y] = queue.shift();
+
+	if (x === end[0] && y === end[1]) {
+	    return true;
 	}
 
-	vis[x][y] = 1
-        dfs(x+1, y)
-	dfs(x-1, y)
-        dfs(x, y+1)
-	dfs(x, y-1)
+	for (let i = 0; i < 4; i++) {
+	    const nextX = x + dx[i];
+	    const nextY = y + dy[i];
+
+	    if (nextX >= 0 && nextX < ROW && nextY >= 0 && nextY < COL && !visited[nextX][nextY]) {
+		visited[nextX][nextY] = true;
+		queue.push([nextX, nextY]);
+	    }
+	}
     }
+
+    return false;
 }
+
 
 generateMaze()
 renderMaze()
-//dfs(0,0) - not working for now
 
+let path = bfs([0,0], [4,4])
+
+if (path == false)
+{
+    alert("No path found, reload page")
+}
 
 document.onkeyup = function (e) {
     const key = e.key
 
     switch (key) {
 	case "ArrowLeft":
-            movePlayer(0, -1)
+	    movePlayer(0, -1)
 	    break;
-        case "ArrowRight":
+	case "ArrowRight":
 	    movePlayer(0, 1)
 	    break;
-        case "ArrowUp":
+	case "ArrowUp":
 	    movePlayer(-1, 0)
 	    break;
 	case "ArrowDown":
